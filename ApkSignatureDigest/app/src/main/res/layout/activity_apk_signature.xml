@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:padding="10dp"
+    >
+
+    <AutoCompleteTextView
+        android:id="@+id/pkg_name_editText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Package Name"
+        android:text="com.qfox.social"
+        android:inputType="textNoSuggestions"
+        />
+    <Button
+        android:id="@+id/retrieve_signature_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="10dp"
+        android:text="Get Signature Digest"
+        android:textColor="@color/white"
+        android:textAllCaps="false"
+        android:background="@drawable/btn_get_sign"
+        />
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        >
+
+        <TextView
+            android:id="@+id/signature_textView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textSize="15sp"
+            android:textColor="@android:color/black"
+            android:text="result"
+            android:gravity="center"
+            android:layout_gravity="center"
+            />
+    </FrameLayout>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:lineSpacingExtra="2dp"
+        android:text="Tips:\n(1) click result to change case.\n(2) long press result to copy."
+        />
+</LinearLayout>
