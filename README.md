@@ -3,4 +3,6 @@ Get installed apk signature digest. 获取已安装的APK的签名摘要,现在�
 
 ![screenshot](./Screenshot.png)
 
-[Apk下载地址](./ApkSignatureDigest/app/app-release.apk)
+[Apk下载地址](https://github.com/whinc/apk-signature-digest/raw/master/ApkSignatureDigest/app/app-release.apk)
+
+![Download URL](./download_qrcode.png)
