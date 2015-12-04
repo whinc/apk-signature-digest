@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:app="http://schemas.android.com/apk/res-auto"
+              xmlns:tools="http://schemas.android.com/tools"
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:padding="10dp"
+              android:focusableInTouchMode="true"
+              android:descendantFocusability="beforeDescendants"
     >
 
     <AutoCompleteTextView
@@ -12,7 +15,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Package Name"
-        android:inputType="textNoSuggestions"
+        android:inputType="textAutoComplete"
         />
     <Button
         android:id="@+id/retrieve_signature_btn"
@@ -36,16 +39,46 @@
             android:layout_height="match_parent"
             android:textSize="15sp"
             android:textColor="@android:color/black"
-            android:text="result"
+            android:text="@string/sign_digest_hint"
             android:gravity="center"
             android:layout_gravity="center"
             />
     </FrameLayout>
-    <TextView
+
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        >
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:lineSpacingExtra="5dp"
+            android:text="Tips:\n(1) click to change case.\n(2) long press to copy."
+            />
+    </FrameLayout>
+
+    <GridLayout
+        android:id="@+id/version_info_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:rowCount="2"
+        android:columnCount="2"
+        android:orientation="horizontal"
         android:layout_marginTop="20dp"
-        android:lineSpacingExtra="2dp"
-        android:text="Tips:\n(1) click result to change case.\n(2) long press result to copy."
-        />
+        >
+        <TextView
+            android:text="Version Code:"
+            />
+        <TextView
+            tools:text="1"
+            />
+        <TextView
+            android:text="Version Name:"
+            />
+        <TextView
+            tools:text="1.0.0"
+            />
+    </GridLayout>
 </LinearLayout>

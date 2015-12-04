@@ -2,21 +2,30 @@ package com.whinc.apksignaturedigest;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.GridLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnLongClick;
+
+import static com.whinc.util.SystemServiceUtils.copyToClipboard;
 
 /**
  * Created by wuhui on 8/31/15.
@@ -25,11 +34,14 @@ public class ApkSignatureActivity extends AppCompatActivity {
     public static final String TAG = ApkSignatureActivity.class.getSimpleName();
 
     @Bind(R.id.pkg_name_editText)
-    AutoCompleteTextView mPkgNameEditText;
+    AutoCompleteTextView mPkgNameEdt;
     @Bind(R.id.signature_textView)
-    TextView mSignatureTextView;
+    TextView mSignDigestTxt;
+    @Bind(R.id.version_info_layout)
+    GridLayout mVersionInfoLayout;
 
     private boolean mUpperCase = true;
+    private List<PackageInfo> mPkgInfoList;
 
     public static void startActivity(Context context) {
         Intent intent = new Intent(context, ApkSignatureActivity.class);
@@ -42,42 +54,78 @@ public class ApkSignatureActivity extends AppCompatActivity {
         setContentView(R.layout.activity_apk_signature);
         ButterKnife.bind(this);
         initAppBar();
-
-        List<String> pkgNames = PackageUtils.newInstance(this).installedPkgNames();
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, pkgNames);
-        mPkgNameEditText.setAdapter(adapter);
+        initView();
     }
 
     private void initAppBar() {
     }
 
-    @OnClick({R.id.retrieve_signature_btn})
-    void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.retrieve_signature_btn:
-                retrieveApkSignature();
-                break;
+    private void initView() {
+        mVersionInfoLayout.setVisibility(View.INVISIBLE);
+
+        mPkgInfoList = PackageUtils.getInstance().getInstalledPackages(this);
+        List<String> pkgNameList = new ArrayList<>(mPkgInfoList.size());
+        for (PackageInfo v : mPkgInfoList) {
+            pkgNameList.add(v.packageName);
         }
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, pkgNameList);
+        mPkgNameEdt.setAdapter(adapter);
+        mPkgNameEdt.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                updatePkgInfo(mPkgInfoList.get(position));
+            }
+        });
+        mPkgNameEdt.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                mSignDigestTxt.setText(R.string.sign_digest_hint);
+                mVersionInfoLayout.setVisibility(View.INVISIBLE);
+            }
+        });
     }
 
-    private void retrieveApkSignature() {
-        String pkgName = mPkgNameEditText.getText().toString();
+    @OnClick({R.id.retrieve_signature_btn})
+    protected void onBtnClick() {
+        String pkgName = mPkgNameEdt.getText().toString();
         if (TextUtils.isEmpty(pkgName)) {
             Toast.makeText(this, "Package name cannot be empty!", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        PackageUtils pkgUtils = PackageUtils.newInstance(this, pkgName);
-        if (pkgUtils != null) {
-            String[] digests = pkgUtils.signatureDigest();
-            if (digests.length > 0) {
-                String digest = digests[0];
-                digest = mUpperCase ? digest.toUpperCase() : digest.toLowerCase();
-                mSignatureTextView.setText(digest);
+        PackageInfo pkgInfo = null;
+        for (PackageInfo v : mPkgInfoList) {
+            if (v.packageName.equals(pkgName)) {
+                pkgInfo = v;
+                break;
             }
-        } else {
-            Toast.makeText(this, "Package name not found!", Toast.LENGTH_SHORT).show();
         }
+        if (pkgInfo != null) {
+            updatePkgInfo(pkgInfo);
+        } else {
+            Toast.makeText(this, "Invalid package name!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void updatePkgInfo(PackageInfo pkgInfo) {
+        String digest = PackageUtils.getInstance().getSignatureDigest(pkgInfo);
+        digest = mUpperCase ? digest.toUpperCase() : digest.toLowerCase();
+        mSignDigestTxt.setText(digest);
+        mPkgNameEdt.clearFocus();
+        InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(mPkgNameEdt.getWindowToken(), 0);
+
+        TextView versionCodeTxt = (TextView) mVersionInfoLayout.getChildAt(1);
+        TextView versionNameTxt = (TextView) mVersionInfoLayout.getChildAt(3);
+        versionCodeTxt.setText(String.valueOf(pkgInfo.versionCode));
+        versionNameTxt.setText(pkgInfo.versionName);
+        mVersionInfoLayout.setVisibility(View.VISIBLE);
     }
 
     @OnClick(R.id.signature_textView)
@@ -90,7 +138,7 @@ public class ApkSignatureActivity extends AppCompatActivity {
 
     @OnLongClick(R.id.signature_textView)
     boolean copyDigest(TextView textView) {
-        SystemServiceUtils.copyToClipboard(this, textView.getText());
+        copyToClipboard(this, textView.getText());
 
         String tip = textView.getText() + " has been copied to clipboard!";
         Toast.makeText(this, tip, Toast.LENGTH_SHORT).show();

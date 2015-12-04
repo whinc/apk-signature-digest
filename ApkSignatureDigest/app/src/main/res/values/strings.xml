@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">ApkSignatureDigest</string>
+    <string name="sign_digest_hint">Result</string>
 </resources>
