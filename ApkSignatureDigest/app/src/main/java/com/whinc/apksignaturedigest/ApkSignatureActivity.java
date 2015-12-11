@@ -9,15 +9,16 @@ import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.GridLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
+import com.rengwuxian.materialedittext.MaterialAutoCompleteTextView;
+
 import java.util.List;
 
 import butterknife.Bind;
@@ -34,7 +35,7 @@ public class ApkSignatureActivity extends AppCompatActivity {
     public static final String TAG = ApkSignatureActivity.class.getSimpleName();
 
     @Bind(R.id.pkg_name_editText)
-    AutoCompleteTextView mPkgNameEdt;
+    MaterialAutoCompleteTextView mPkgNameEdt;
     @Bind(R.id.signature_textView)
     TextView mSignDigestTxt;
     @Bind(R.id.version_info_layout)
@@ -64,16 +65,20 @@ public class ApkSignatureActivity extends AppCompatActivity {
         mVersionInfoLayout.setVisibility(View.INVISIBLE);
 
         mPkgInfoList = PackageUtils.getInstance().getInstalledPackages(this);
-        List<String> pkgNameList = new ArrayList<>(mPkgInfoList.size());
-        for (PackageInfo v : mPkgInfoList) {
-            pkgNameList.add(v.packageName);
-        }
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, pkgNameList);
-        mPkgNameEdt.setAdapter(adapter);
+        mPkgNameEdt.setAdapter(new ArrayAdapter<PackageInfo>(this, android.R.layout.simple_list_item_1, mPkgInfoList) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                View view = super.getView(position, convertView, parent);
+                TextView textView = (TextView) view.findViewById(android.R.id.text1);
+                textView.setText(getItem(position).packageName);
+                return view;
+            }
+        });
         mPkgNameEdt.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                updatePkgInfo(mPkgInfoList.get(position));
+                PackageInfo packageInfo = (PackageInfo) parent.getItemAtPosition(position);
+                updatePkgInfo(packageInfo);
             }
         });
         mPkgNameEdt.addTextChangedListener(new TextWatcher() {
@@ -85,10 +90,21 @@ public class ApkSignatureActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                mSignDigestTxt.setText(R.string.sign_digest_hint);
-                mVersionInfoLayout.setVisibility(View.INVISIBLE);
+                if (TextUtils.isEmpty(s.toString())) {
+                    mSignDigestTxt.setText("");
+                    mVersionInfoLayout.setVisibility(View.INVISIBLE);
+                }
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // update package info list
+        mPkgInfoList.clear();
+        mPkgInfoList.addAll(PackageUtils.getInstance().getInstalledPackages(this));
     }
 
     @OnClick({R.id.retrieve_signature_btn})
@@ -117,6 +133,7 @@ public class ApkSignatureActivity extends AppCompatActivity {
         String digest = PackageUtils.getInstance().getSignatureDigest(pkgInfo);
         digest = mUpperCase ? digest.toUpperCase() : digest.toLowerCase();
         mSignDigestTxt.setText(digest);
+        mPkgNameEdt.setText(pkgInfo.packageName);
         mPkgNameEdt.clearFocus();
         InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
         inputMethodManager.hideSoftInputFromWindow(mPkgNameEdt.getWindowToken(), 0);
@@ -144,4 +161,5 @@ public class ApkSignatureActivity extends AppCompatActivity {
         Toast.makeText(this, tip, Toast.LENGTH_SHORT).show();
         return true;
     }
+
 }

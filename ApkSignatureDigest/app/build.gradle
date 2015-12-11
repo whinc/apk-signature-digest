@@ -24,4 +24,5 @@ dependencies {
     compile 'com.android.support:appcompat-v7:23.0.1'
     compile 'com.jakewharton:butterknife:7.0.1'
     compile 'com.whinc.util:androidtoolkit:0.1.6'
+    compile 'com.rengwuxian.materialedittext:library:2.1.4'
 }

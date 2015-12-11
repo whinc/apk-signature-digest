@@ -10,12 +10,14 @@
               android:descendantFocusability="beforeDescendants"
     >
 
-    <AutoCompleteTextView
+    <com.rengwuxian.materialedittext.MaterialAutoCompleteTextView
         android:id="@+id/pkg_name_editText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Package Name"
+        android:hint="Enter Package Name"
         android:inputType="textAutoComplete"
+        app:met_clearButton="true"
+        app:met_floatingLabel="normal"
         />
     <Button
         android:id="@+id/retrieve_signature_btn"
